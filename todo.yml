@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-management
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: todo-management
+  template:
+    metadata:
+      labels:
+        app: todo-management
+    spec:
+      containers:
+      - name: todo-management
+        image: lekheing/todo-management
+        env:
+        - name: DBMS_CONNECTION
+          valueFrom:
+            configMapKeyRef: 
+              name: todo-config
+              key: DBMS_CONNECTION
+        - name: DBMS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: secret-db
+              key: username
+        - name: DBMS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: secret-db
+              key: password
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-service
+spec:
+  type: NodePort
+  selector:
+    app: todo-management
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30100
